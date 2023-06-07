@@ -6,6 +6,7 @@ const {
   ctrlGetCurrent,
   ctrlLogout,
   ctrlAvatar,
+  ctrlVerify,
 } = require("../../controllers/auth");
 
 const { validateBody } = require("../../decorators");
@@ -21,6 +22,8 @@ router.post(
   validateBody(schemas.registerShema),
   ctrlRegister.register
 );
+
+router.get("/verify/:verificationToken", ctrlVerify.verify);
 
 router.post("/login", validateBody(schemas.loginShema), ctrlLogin.login);
 
