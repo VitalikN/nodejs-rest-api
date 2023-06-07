@@ -1,10 +1,14 @@
 const bcrypt = require("bcryptjs");
 
+const { nanoid } = require("nanoid");
+
 const gravatar = require("gravatar");
 
 const { User } = require("../../models/user");
 
-const { HttpError } = require("../../helpers");
+const { HttpError, sendEmail } = require("../../helpers");
+
+const { PROJECT_URL } = process.env;
 
 const { ctrlWrapper } = require("../../decorators");
 
@@ -23,6 +27,8 @@ const register = async (req, res) => {
    */
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  const verificationToken = nanoid();
+
   const compareHashedPassword = await bcrypt.compare(password, hashedPassword);
 
   console.log(compareHashedPassword);
@@ -31,7 +37,18 @@ const register = async (req, res) => {
     ...req.body,
     password: hashedPassword,
     avatarURL,
+    verificationToken,
   });
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify your email",
+    html: `<h1>Verify your email</h1>
+     <p>Please click the link below to verify your email</p>
+     <p><a target="_blank" href="${PROJECT_URL}/api/auth/verify/${verificationToken}">${verificationToken}</a></p>`,
+  };
+
+  await sendEmail(verifyEmail);
 
   res.status(201).json({
     email: newUser.email,
